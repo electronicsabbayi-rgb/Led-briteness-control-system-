@@ -1,8 +1,3 @@
-# Led-briteness-control-system-
-
-
-
-
 #define TRIG_PIN 9
 #define ECHO_PIN 10
 #define LED_PIN 6   // PWM pin
@@ -38,22 +33,28 @@ void setup() {
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
+
   analogWrite(LED_PIN, 0);
   Serial.begin(9600);
 }
 
 void loop() {
   long d = readDistanceCM();
+
   if (d > 0 && d < 200) { // sanity range
-    if (emaDistance == 0) emaDistance = d;     // initialize EMA on first good read
+    if (emaDistance == 0)
+      emaDistance = d; // initialize EMA on first good read
+
     emaDistance = ALPHA * d + (1 - ALPHA) * emaDistance;
   }
 
   // Check if the smoothed distance is within gesture window
   if (emaDistance >= NEAR_CM && emaDistance <= FAR_CM) {
+
     // Map distance -> brightness (near = bright, far = dim)
     int brightness = map((int)emaDistance, NEAR_CM, FAR_CM, 255, 0);
     brightness = constrain(brightness, 0, 255);
+
     analogWrite(LED_PIN, brightness);
     lastValidGestureMs = millis();
 
@@ -61,7 +62,9 @@ void loop() {
     Serial.print((int)emaDistance);
     Serial.print("  Brightness: ");
     Serial.println(brightness);
+
   } else {
+
     // If no valid gesture for a while, fade out to clean idle
     if (millis() - lastValidGestureMs > OFF_AFTER_MS) {
       analogWrite(LED_PIN, 0);
